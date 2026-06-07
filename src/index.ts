@@ -13,14 +13,29 @@ import {
 import z from "zod";
 
 import { auth } from "./lib/auth.js";
+import { env } from "./lib/env.js";
 import { aiRoutes } from "./routes/ai.js";
 import { homeRoutes } from "./routes/home.js";
 import { meRoutes } from "./routes/me.js";
 import { statsRoutes } from "./routes/stats.js";
 import { workoutPlanRoutes } from "./routes/workoutPlan.js";
 
+const envToLogger = {
+  development: {
+    transport: {
+      target: "pino-pretty",
+      options: {
+        translateTime: "HH:MM:ss Z",
+        ignore: "pid,hostname",
+      },
+    },
+  },
+  production: true,
+  test: false,
+};
+
 const app = Fastify({
-  logger: true,
+  logger: envToLogger[env.NODE_ENV],
 });
 
 app.setValidatorCompiler(validatorCompiler);
@@ -35,8 +50,8 @@ await app.register(fastifySwagger, {
     },
     servers: [
       {
-        url: "http://localhost:8081",
-        description: "Local development server",
+        url: env.API_BASE_URL,
+        description: "API base URL",
       },
     ],
   },
@@ -44,7 +59,7 @@ await app.register(fastifySwagger, {
 });
 
 await app.register(fastifyCors, {
-  origin: ["http://localhost:3000"],
+  origin: [env.WEB_APP_BASE_URL],
   credentials: true,
 });
 
@@ -106,6 +121,9 @@ app.withTypeProvider<ZodTypeProvider>().route({
 app.route({
   method: ["GET", "POST"],
   url: "/api/auth/*",
+  schema: {
+    hide: true,
+  },
   async handler(request, reply) {
     try {
       // Construct request URL
@@ -142,7 +160,7 @@ app.route({
 });
 
 try {
-  await app.listen({ port: Number(process.env.PORT) || 3000 });
+  await app.listen({ host: "0.0.0.0", port: env.PORT });
 } catch (err) {
   app.log.error(err);
   process.exit(1);
