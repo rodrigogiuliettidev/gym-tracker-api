@@ -7,6 +7,7 @@ import { jsonSchemaTransform, serializerCompiler, validatorCompiler, } from "fas
 import z from "zod";
 import { auth } from "./lib/auth.js";
 import { env } from "./lib/env.js";
+import { aiFakeRoutes } from "./routes/ai-fake.js";
 import { aiRoutes } from "./routes/ai.js";
 import { homeRoutes } from "./routes/home.js";
 import { meRoutes } from "./routes/me.js";
@@ -73,6 +74,7 @@ await app.register(statsRoutes, { prefix: "/stats" });
 await app.register(meRoutes, { prefix: "/me" });
 await app.register(workoutPlanRoutes, { prefix: "/workout-plans" });
 await app.register(aiRoutes, { prefix: "/ai" });
+await app.register(aiFakeRoutes, { prefix: "/ai-fake" });
 app.withTypeProvider().route({
     method: "GET",
     url: "/swagger.json",
