@@ -16,6 +16,8 @@ import { auth } from "./lib/auth.js";
 import { env } from "./lib/env.js";
 import { aiFakeRoutes } from "./routes/ai-fake.js";
 import { aiRoutes } from "./routes/ai.js";
+import { feedRoutes } from "./routes/feed.js";
+import { quizRoutes } from "./routes/quiz.js";
 import { homeRoutes } from "./routes/home.js";
 import { meRoutes } from "./routes/me.js";
 import { statsRoutes } from "./routes/stats.js";
@@ -87,6 +89,8 @@ await app.register(homeRoutes, { prefix: "/home" });
 await app.register(statsRoutes, { prefix: "/stats" });
 await app.register(meRoutes, { prefix: "/me" });
 await app.register(workoutPlanRoutes, { prefix: "/workout-plans" });
+await app.register(feedRoutes, { prefix: "/feed" });
+await app.register(quizRoutes, { prefix: "/quiz" });
 await app.register(aiRoutes, { prefix: "/ai" });
 await app.register(aiFakeRoutes, { prefix: "/ai-fake" });
 

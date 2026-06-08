@@ -167,6 +167,97 @@ export const UpsertUserTrainDataSchema = z.object({
   bodyFatPercentage: z.number(),
 });
 
+export const QuizCategorySchema = z.enum(["NUTRITION", "TRAINING"]);
+
+export const QuizQuestionSchema = z.object({
+  id: z.string(),
+  question: z.string(),
+  options: z.array(z.string()),
+  category: QuizCategorySchema,
+  alreadyAnswered: z.boolean(),
+  selectedIndex: z.number().optional(),
+  isCorrect: z.boolean().optional(),
+  correctIndex: z.number().optional(),
+  explanation: z.string().optional(),
+});
+
+export const TodayQuizSchema = z.object({
+  questions: z.array(QuizQuestionSchema),
+});
+
+export const AnswerQuizBodySchema = z.object({
+  questionId: z.string(),
+  selectedIndex: z.number().int().min(0).max(3),
+});
+
+export const AnswerQuizSchema = z.object({
+  isCorrect: z.boolean(),
+  correctIndex: z.number(),
+  explanation: z.string(),
+});
+
+export const ListMyWorkoutSessionsSchema = z.object({
+  sessions: z.array(
+    z.object({
+      id: z.uuid(),
+      workoutDayId: z.uuid(),
+      workoutDayName: z.string(),
+      completedAt: z.iso.datetime(),
+    }),
+  ),
+});
+
+export const CreateFeedPostBodySchema = z.object({
+  content: z.string().trim().min(1),
+  imageUrl: z.url().optional(),
+  workoutSessionId: z.uuid().optional(),
+});
+
+export const FeedPostSchema = z.object({
+  id: z.uuid(),
+  userId: z.string(),
+  userName: z.string(),
+  userImageUrl: z.url().optional(),
+  content: z.string(),
+  imageUrl: z.url().optional(),
+  workoutSessionId: z.uuid().optional(),
+  workoutDayName: z.string().optional(),
+  likesCount: z.number(),
+  likedByMe: z.boolean(),
+  createdAt: z.iso.datetime(),
+});
+
+export const ListFeedPostsQuerySchema = z.object({
+  cursor: z.uuid().optional(),
+  limit: z
+    .string()
+    .transform((v) => parseInt(v, 10))
+    .pipe(z.number().min(1).max(50))
+    .optional(),
+});
+
+export const ListFeedPostsSchema = z.object({
+  posts: z.array(FeedPostSchema),
+  nextCursor: z.uuid().optional(),
+});
+
+export const UserNoteSchema = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  content: z.string(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+export const ListUserNotesSchema = z.object({
+  notes: z.array(UserNoteSchema),
+});
+
+export const CreateUserNoteBodySchema = z.object({
+  title: z.string().trim().min(1),
+  content: z.string().trim().min(1),
+});
+
 export const WorkoutPlanSchema = z.object({
   id: z.uuid(),
   name: z.string().trim().min(1),

@@ -69,19 +69,24 @@ const extractWorkoutGoal = (messages: ChatMessage[]): WorkoutGoal | null => {
     .join(" ")
     .toLowerCase();
 
-  const daysMatch = text.match(/(\d)\s*x?\s*(?:na|por)\s*semana/i);
-  if (!daysMatch) return null;
-
   const hasGainGoal =
     text.includes("massa") ||
     text.includes("ganho") ||
-    text.includes("hipertrofia");
+    text.includes("hipertrofia") ||
+    text.includes("muscula");
   const hasLossGoal =
     text.includes("emagrecer") ||
     text.includes("perder") ||
-    text.includes("gordura");
+    text.includes("gordura") ||
+    text.includes("emagre");
   const hasCondGoal =
     text.includes("condicionamento") || text.includes("resistência");
+
+  if (!hasGainGoal && !hasLossGoal && !hasCondGoal) return null;
+
+  const daysMatch = text.match(/(\d)\s*x?\s*(?:na|por|vezes)?\s*semana/i) ||
+    text.match(/(\d)\s*dias?/i);
+  const daysPerWeek = daysMatch ? parseInt(daysMatch[1]) : 4;
 
   let objective = "ganho de massa muscular";
   if (hasGainGoal && hasLossGoal) objective = "ganho de massa e perda de gordura";
@@ -101,7 +106,7 @@ const extractWorkoutGoal = (messages: ChatMessage[]): WorkoutGoal | null => {
 
   return {
     objective,
-    daysPerWeek: parseInt(daysMatch[1]),
+    daysPerWeek,
     hasRestrictions,
   };
 };
@@ -214,36 +219,34 @@ const determineConversationStep = (
   const goal = extractWorkoutGoal(messages);
   const lastUserMsg = userMessages[userMessages.length - 1].content.toLowerCase();
 
-  const askedForPlan =
-    messages.some(
-      (m) =>
-        m.role === "user" &&
-        (m.content.toLowerCase().includes("plano de treino") ||
-          m.content.toLowerCase().includes("criar treino") ||
-          m.content.toLowerCase().includes("montar treino")),
-    );
+  const assistantAskedGoal = assistantMessages.some(
+    (m) =>
+      m.content.includes("objetivo principal") ||
+      m.content.includes("dias por semana"),
+  );
 
-  const answeredRestrictions =
-    messages.some(
-      (m) =>
-        m.role === "user" &&
-        (m.content.toLowerCase().includes("restrição") ||
-          m.content.toLowerCase().includes("restrições") ||
-          m.content.toLowerCase().includes("sem restrição") ||
-          m.content.toLowerCase().includes("não tenho") ||
-          m.content.toLowerCase().includes("nao tenho") ||
-          m.content.toLowerCase().includes("lesão") ||
-          m.content.toLowerCase().includes("nenhuma")),
-    );
+  const answeredRestrictions = messages.some(
+    (m) =>
+      m.role === "user" &&
+      (m.content.toLowerCase().includes("restrição") ||
+        m.content.toLowerCase().includes("restrições") ||
+        m.content.toLowerCase().includes("sem restrição") ||
+        m.content.toLowerCase().includes("não tenho") ||
+        m.content.toLowerCase().includes("nao tenho") ||
+        m.content.toLowerCase().includes("lesão") ||
+        m.content.toLowerCase().includes("nenhuma")),
+  );
 
   if (!profile) return "ask_profile";
   if (assistantMessages.length <= 1) return "confirm_profile";
-  if (!askedForPlan) return "ask_goal";
-  if (!goal) return "ask_goal";
+  if (!assistantAskedGoal || !goal) return "ask_goal";
   if (!answeredRestrictions) return "ask_restrictions";
 
-  const alreadyCreated = assistantMessages.some((m) =>
-    m.content.includes("plano foi criado") || m.content.includes("Plano criado"),
+  const alreadyCreated = assistantMessages.some(
+    (m) =>
+      m.content.includes("plano foi criado") ||
+      m.content.includes("Plano criado") ||
+      m.content.includes("foi criado com sucesso"),
   );
   if (alreadyCreated) return "done";
 
